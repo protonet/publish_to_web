@@ -8,14 +8,16 @@ require 'pathname'
 # Gems
 require 'net/ssh'
 require 'http'
+require 'platform-skvs'
 
 # Library
+require "publish_to_web/config"
 require "publish_to_web/directory"
 require "publish_to_web/tunnel"
 require "publish_to_web/version"
 
 class PublishToWeb
-  attr_reader :forward_port, :bind_host, :identity, :proxy_host, 
+  attr_reader :forward_port, :bind_host, :proxy_host, 
     :proxy_user, :proxy_port, :directory_host, :directory_key, :logger
 
   def initialize(
@@ -24,14 +26,12 @@ class PublishToWeb
       proxy_host: "proxy.protonet.info",
       proxy_user: "localtunnel",
       proxy_port: 22666,
-      identity:,
       directory_host: "https://directory.protonet.info",
       directory_key:
     )
 
     @forward_port = forward_port
     @bind_host = bind_host
-    @identity = identity
     @proxy_host = proxy_host
     @proxy_user = proxy_user
     @proxy_port = proxy_port
@@ -42,10 +42,14 @@ class PublishToWeb
 
   def start_tunnel
     logger.info "Starting tunnel to #{proxy_host} as #{directory.node_name}"
+    directory.register_identity
     tunnel.start
   end
 
   private
+
+    def identity
+    end
 
     def directory
       @directory ||= Directory.new host: directory_host, key: directory_key, logger: logger
@@ -55,7 +59,7 @@ class PublishToWeb
       @tunnel ||= Tunnel.new proxy_host: proxy_host,
         proxy_user: proxy_user, 
         proxy_port: proxy_port,
-        identity: identity, 
+        identity: directory.private_key,
         bind_host: bind_host, 
         remote_port: directory.remote_port, 
         forward_port: forward_port,
