@@ -69,14 +69,16 @@ describe PublishToWeb::Tunnel do
 
     it "sets up a remote forward on the ssh connection" do
       expect(ssh_forward_mock).to receive(:remote).
-        with(tunnel.forward_port, tunnel.bind_host, tunnel.remote_port)
+        with(tunnel.forward_port, tunnel.bind_host, tunnel.remote_port).
+        and_yield(1234)
 
       tunnel.start
     end
 
     it "sets up a remote forward on the ssh connection" do
       expect(ssh_forward_mock).to receive(:local).
-        with(tunnel.local_port, tunnel.bind_host, 8765)
+        with(tunnel.local_port, tunnel.bind_host, 8765).
+        and_return(4567)
 
       tunnel.start
     end

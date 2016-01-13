@@ -4,6 +4,8 @@ require 'digest/sha1'
 
 class PublishToWeb
   class Directory
+    class HttpResponseError < StandardError; end;
+
     attr_reader :host, :config, :logger
 
     def initialize(host:, config:, logger:)
@@ -48,29 +50,51 @@ class PublishToWeb
       "platform-alpha"
     end
 
-    def public_key_ok?
-      if public_key and private_key
-        SSHKey.new(private_key).ssh_public_key == public_key &&
-          Digest::SHA1.hexdigest(public_key) == directory_public_key_sha1
+    def set_node_name(node_name)
+      logger.info "Setting node name at directory to #{node_name}"
+      response = HTTP.post url_for('set_node_name'), form: { license_key: license_key, node_name: node_name }
+      if (200..299).include? response.status
+        logger.info "New node name registered successfully"
+        info refresh: true
+        true
+      else
+        raise HttpResponseError, "Failed to set new node name in directory! HTTP Status #{response.status}"
       end
     end
 
-    def ensure_valid_identity!
-      if public_key_ok?
+    def set_version
+      logger.info "Setting version at directory to #{version}"
+      response = HTTP.post url_for('set_version'), form: { license_key: license_key, version: version.shellescape }
+      if (200..299).include? response.status
         true
       else
-        SSHKey.generate(type: 'rsa', bits: 4096).tap do |new_identity|
-          register_identity new_identity.ssh_public_key
-          info refresh: true
-
-          config.private_key = new_identity.private_key
-          config.public_key  = new_identity.ssh_public_key
-        end
-        true
+        raise HttpResponseError, "Failed to set version in directory! HTTP Status #{response.status}"
       end
     end
 
     private
+
+      def public_key_ok?
+        if config.public_key and config.private_key
+          SSHKey.new(config.private_key).ssh_public_key == config.public_key &&
+            Digest::SHA1.hexdigest(config.public_key) == directory_public_key_sha1
+        end
+      end
+
+      def ensure_valid_identity!
+        if public_key_ok?
+          true
+        else
+          SSHKey.generate(type: 'rsa', bits: 4096).tap do |new_identity|
+            register_identity new_identity.ssh_public_key
+            info refresh: true
+
+            config.private_key = new_identity.private_key
+            config.public_key  = new_identity.ssh_public_key
+          end
+          true
+        end
+      end
 
       def info(refresh: false)
         @info = nil if refresh
@@ -81,30 +105,8 @@ class PublishToWeb
           if response.status == 200
             JSON.load(response.body)
           else
-            raise "Failed to get connection info from directory! HTTP Status #{response.status}"
+            raise HttpResponseError, "Failed to get connection info from directory! HTTP Status #{response.status}"
           end
-        end
-      end
-
-      def set_node_name(node_name)
-        logger.info "Setting node name at directory to #{node_name}"
-        response = HTTP.post url_for('set_node_name'), form: { license_key: license_key, node_name: node_name }
-        if (200..299).include? response.status
-          logger.info "Node name registered successfully"
-          info refresh: true
-          true
-        else
-          raise "Failed to set version in directory! HTTP Status #{response.status}"
-        end
-      end
-
-      def set_version
-        logger.info "Setting version at directory to #{version}"
-        response = HTTP.post url_for('set_version'), form: { license_key: license_key, version: version.shellescape }
-        if (200..299).include? response.status
-          true
-        else
-          raise "Failed to set version in directory! HTTP Status #{response.status}"
         end
       end
 
@@ -115,7 +117,7 @@ class PublishToWeb
           logger.info "Successfully created new license key"
           JSON.parse(response.body)["license_key"]
         else
-          raise "Failed to create license in directory! HTTP Status #{response.status}"
+          raise HttpResponseError, "Failed to create license in directory! HTTP Status #{response.status}"
         end
       end
 
@@ -126,7 +128,7 @@ class PublishToWeb
           logger.info "Successfully registered new public key in directory"
           true
         else
-          raise "Failed to register identity with directory! HTTP Status #{response.status}"
+          raise HttpResponseError, "Failed to register identity with directory! HTTP Status #{response.status}"
         end
       end
 
