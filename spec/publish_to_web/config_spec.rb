@@ -33,4 +33,14 @@ describe PublishToWeb::Config do
       expect(config.enabled?).to be == true
     end
   end
+
+  it "allows conditional setting of defaults" do
+    expect(store).to receive(:get).with("ptw/license").and_return('configured')
+    expect(store).not_to receive(:set).with("ptw/license", 'default')
+    expect(config.license_key ||= 'default').to be == 'configured'
+
+    expect(store).to receive(:get).with("ptw/hardware_id").and_return(nil)
+    expect(store).to receive(:set).with("ptw/hardware_id", 'default').and_return('default')
+    expect(config.hardware_id ||= 'default').to be == 'default' 
+  end
 end

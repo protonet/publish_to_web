@@ -18,7 +18,7 @@ require "publish_to_web/version"
 
 class PublishToWeb
   attr_reader :forward_port, :bind_host, :proxy_host, 
-    :proxy_user, :proxy_port, :directory_host, :directory_key, :logger
+    :proxy_user, :proxy_port, :directory_host, :logger, :config
 
   def initialize(
       forward_port: 80, 
@@ -27,32 +27,29 @@ class PublishToWeb
       proxy_user: "localtunnel",
       proxy_port: 22666,
       directory_host: "https://directory.protonet.info",
-      directory_key:
+      config: Config.new,
+      logger: Logger.new(STDOUT).tap {|l| l.level = Logger::INFO }
     )
 
-    @forward_port = forward_port
-    @bind_host = bind_host
-    @proxy_host = proxy_host
-    @proxy_user = proxy_user
-    @proxy_port = proxy_port
+    @forward_port   = forward_port
+    @bind_host      = bind_host
+    @proxy_host     = proxy_host
+    @proxy_user     = proxy_user
+    @proxy_port     = proxy_port
     @directory_host = directory_host
-    @directory_key = directory_key
-    @logger = Logger.new(STDOUT, Logger::INFO)
+    @config         = config
+    @logger         = logger
   end
 
   def start_tunnel
     logger.info "Starting tunnel to #{proxy_host} as #{directory.node_name}"
-    directory.register_identity
     tunnel.start
   end
 
   private
 
-    def identity
-    end
-
     def directory
-      @directory ||= Directory.new host: directory_host, key: directory_key, logger: logger
+      @directory ||= Directory.new host: directory_host, logger: logger, config: config
     end
 
     def tunnel
@@ -61,7 +58,7 @@ class PublishToWeb
         proxy_port: proxy_port,
         identity: directory.private_key,
         bind_host: bind_host, 
-        remote_port: directory.remote_port, 
+        remote_port: directory.remote_port,
         forward_port: forward_port,
         logger: logger
     end
