@@ -26,7 +26,7 @@ class PublishToWeb
         verbose: :info
       }
     end
-
+    
     def local_port
       @local_port ||= begin
         server = TCPServer.new('127.0.0.1', 0)
