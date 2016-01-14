@@ -36,7 +36,36 @@ describe PublishToWeb do
     end
   end
 
+  describe "#check_local_endpoint" do
+    it "tries to open a local connection to the backend" do
+      # Ensure we wait for a bit before we retry the connect
+      expect(publish_to_web).to receive(:sleep).with(5)
+
+      calls = 0
+      # On first tunnel start throw the connection exception to verify we retry
+      # (and then succeed)
+      expect(TCPSocket).to receive(:new).
+        twice do
+          calls += 1
+          if calls == 1
+            raise Errno::ECONNREFUSED
+          else
+            OpenStruct.new(close: true)
+          end
+        end
+
+      publish_to_web.check_local_endpoint
+    end
+  end
+
   describe "#start_tunnel" do
+    before(:each) do
+      # Stub our local connection check
+      allow(TCPSocket).to receive(:new).
+        with(publish_to_web.bind_host, publish_to_web.forward_port).
+        and_return OpenStruct.new(close: true)
+    end
+
     it "starts a new ssh tunnel based on the configuration" do
       directory_double = double("PublishToWeb::Directory")
       expected_directory_options = {
@@ -106,11 +135,6 @@ describe PublishToWeb do
           double('directory', node_name: 'foo', private_key: 'foo', remote_port: 123)
         )
 
-      # We don't really want to wait 15 seconds here ;)
-      expect(publish_to_web).to receive(:sleep).
-        with(15).
-        and_return(true)
-        
       calls = 0
       # On first tunnel start throw the connection exception to verify we retry
       # (and then succeed)
