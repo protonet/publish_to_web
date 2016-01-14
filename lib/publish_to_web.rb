@@ -59,21 +59,34 @@ class PublishToWeb
   def check_local_endpoint
     logger.info "Checking if local backend is available at #{bind_host}:#{forward_port}"
     TCPSocket.new(bind_host, forward_port).close
+
   rescue Errno::ECONNREFUSED => err
     logger.warn "Local backend is not available (yet?) - waiting for it to become available"
     sleep 5
     check_local_endpoint
   end
 
+  def prepare_directory
+    if node_name = config.node_name
+      directory.set_node_name node_name
+    end
+    directory.set_version
+  end
+
   def start_tunnel
+    prepare_directory
+
     check_local_endpoint
+
     logger.info "Starting tunnel to #{proxy_host} as #{directory.node_name}"
     tunnel.start
+
   rescue Net::SSH::AuthenticationFailed => err
     logger.warn "#{err.class}: #{err}"
     logger.warn "Probably the SSH key is not deployed on the proxy server yet, retrying in a bit"
     sleep 30
     start_tunnel
+
   rescue Errno::ECONNREFUSED => err
     logger.warn "#{err.class}: #{err}"
     logger.warn "Local backend connection failed (on port #{forward_port} - retrying"

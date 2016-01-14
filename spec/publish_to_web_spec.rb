@@ -58,6 +58,35 @@ describe PublishToWeb do
     end
   end
 
+  describe "#prepare_directory" do
+    let(:directory_double) do
+      directory_double = double("PublishToWeb::Directory", set_node_name: true, set_version: true)
+      expect(PublishToWeb::Directory).to receive(:new).
+        and_return(directory_double)
+
+      directory_double
+    end
+
+    it "sets the node_name in directory if configured locally" do
+      expect(directory_double).to receive(:set_node_name).with('lolwat')
+
+      publish_to_web.config.node_name = 'lolwat'
+      publish_to_web.prepare_directory
+    end
+
+    it "does not set node name in directory if not configured locally" do
+      expect(directory_double).not_to receive(:set_node_name)
+
+      publish_to_web.prepare_directory
+    end
+
+    it "sends version to directory" do
+      expect(directory_double).to receive(:set_version)
+
+      publish_to_web.prepare_directory
+    end
+  end
+
   describe "#start_tunnel" do
     before(:each) do
       # Stub our local connection check
@@ -80,6 +109,7 @@ describe PublishToWeb do
       expect(directory_double).to receive(:private_key).and_return('SSH KEY')
       expect(directory_double).to receive(:remote_port).and_return('12345')
       expect(directory_double).to receive(:node_name).and_return('lolwat')
+      expect(directory_double).to receive(:set_version).and_return(true)
 
 
       expected_tunnel_options = {
@@ -105,7 +135,12 @@ describe PublishToWeb do
     it "retries to establish the tunnel if SSH authentication fails" do
       expect(PublishToWeb::Directory).to receive(:new).
         and_return(
-          double('directory', node_name: 'foo', private_key: 'foo', remote_port: 123)
+          double('directory', 
+            node_name: 'foo', 
+            private_key: 'foo', 
+            remote_port: 123,
+            set_version: true
+          )
         )
 
       # We don't really want to wait 30 seconds here ;)
@@ -132,7 +167,12 @@ describe PublishToWeb do
     it "retries to establish the tunnel if local backend fails" do
       expect(PublishToWeb::Directory).to receive(:new).
         and_return(
-          double('directory', node_name: 'foo', private_key: 'foo', remote_port: 123)
+          double('directory', 
+            node_name: 'foo', 
+            private_key: 'foo', 
+            remote_port: 123,
+            set_version: true
+          )
         )
 
       calls = 0
