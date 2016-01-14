@@ -39,6 +39,9 @@ describe PublishToWeb::Tunnel do
 
   describe "#ssh_options" do
     it "generates the required options for Net::SSH from config" do
+      logger = double(:logger)
+      expect(PublishToWeb).to receive(:create_logger).and_return(logger)
+
       expected_options = {
         keepalive_interval: 5,
         paranoid: false,
@@ -46,8 +49,8 @@ describe PublishToWeb::Tunnel do
         user_known_hosts_file: "/dev/null",
         port: tunnel.proxy_port,
         key_data: [tunnel.identity],
-        logger: tunnel.logger,
-        verbose: :info
+        logger: logger,
+        verbose: :warn
       }
       expect(tunnel.ssh_options).to be == expected_options
     end

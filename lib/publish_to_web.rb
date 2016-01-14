@@ -8,6 +8,7 @@ require 'pathname'
 # Gems
 require 'net/ssh'
 require 'http'
+require 'rainbow'
 require 'platform-skvs'
 
 # Library
@@ -17,6 +18,20 @@ require "publish_to_web/tunnel"
 require "publish_to_web/version"
 
 class PublishToWeb
+  def self.create_logger
+    Logger.new(STDOUT).tap do |logger|
+      logger.level = Logger::INFO
+      logger.formatter = -> (severity, datetime, progname, msg) do
+        color = {
+          "WARN"  => :yellow,
+          "ERROR" => :red,
+          "FATAL" => :red
+        }[severity] || :white
+        Rainbow("[#{datetime}][#{severity.ljust(5)}] #{msg}\n").color(color)
+      end
+    end
+  end
+
   attr_reader :forward_port, :bind_host, :proxy_host, 
     :proxy_user, :proxy_port, :directory_host, :logger, :config
 
@@ -28,7 +43,7 @@ class PublishToWeb
       proxy_port: 22666,
       directory_host: "https://directory.protonet.info",
       config: Config.new,
-      logger: Logger.new(STDOUT).tap {|l| l.level = Logger::INFO }
+      logger: self.class.create_logger
     )
 
     @forward_port   = forward_port
@@ -44,6 +59,16 @@ class PublishToWeb
   def start_tunnel
     logger.info "Starting tunnel to #{proxy_host} as #{directory.node_name}"
     tunnel.start
+  rescue Net::SSH::AuthenticationFailed => err
+    logger.warn "#{err.class}: #{err}"
+    logger.warn "Probably the SSH key is not deployed on the proxy server yet, retrying in a bit"
+    sleep 30
+    start_tunnel
+  rescue Errno::ECONNREFUSED => err
+    logger.warn "#{err.class}: #{err}"
+    logger.warn "Local backend connection failed (on port #{forward_port} - retrying in a bit"
+    sleep 15
+    start_tunnel
   end
 
   private
@@ -60,6 +85,6 @@ class PublishToWeb
         bind_host: bind_host, 
         remote_port: directory.remote_port,
         forward_port: forward_port,
-        logger: logger
+        logger: self.class.create_logger
     end
 end

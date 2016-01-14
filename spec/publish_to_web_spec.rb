@@ -61,7 +61,7 @@ describe PublishToWeb do
         bind_host:    publish_to_web.bind_host,
         remote_port:  "12345",
         forward_port: publish_to_web.forward_port,
-        logger:       publish_to_web.logger
+        logger:       kind_of(Logger)
       }
 
       tunnel_double = double('PublishToWeb::Tunnel')
@@ -69,6 +69,60 @@ describe PublishToWeb do
         with(expected_tunnel_options).
         and_return(tunnel_double)
       expect(tunnel_double).to receive(:start)
+
+      publish_to_web.start_tunnel
+    end
+
+    it "retries to establish the tunnel if SSH authentication fails" do
+      expect(PublishToWeb::Directory).to receive(:new).
+        and_return(
+          double('directory', node_name: 'foo', private_key: 'foo', remote_port: 123)
+        )
+
+      # We don't really want to wait 30 seconds here ;)
+      expect(publish_to_web).to receive(:sleep).
+        with(30).
+        and_return(true)
+        
+      calls = 0
+      # On first tunnel start throw the auth exception to verify we retry
+      # (and then succeed)
+      expect(PublishToWeb::Tunnel).to receive(:new).
+        twice do
+          calls += 1
+          if calls == 1
+            raise Net::SSH::AuthenticationFailed
+          else
+            OpenStruct.new(start: 'foo')
+          end
+        end
+
+      publish_to_web.start_tunnel
+    end
+
+    it "retries to establish the tunnel if local backend fails" do
+      expect(PublishToWeb::Directory).to receive(:new).
+        and_return(
+          double('directory', node_name: 'foo', private_key: 'foo', remote_port: 123)
+        )
+
+      # We don't really want to wait 15 seconds here ;)
+      expect(publish_to_web).to receive(:sleep).
+        with(15).
+        and_return(true)
+        
+      calls = 0
+      # On first tunnel start throw the connection exception to verify we retry
+      # (and then succeed)
+      expect(PublishToWeb::Tunnel).to receive(:new).
+        twice do
+          calls += 1
+          if calls == 1
+            raise Errno::ECONNREFUSED
+          else
+            OpenStruct.new(start: 'foo')
+          end
+        end
 
       publish_to_web.start_tunnel
     end

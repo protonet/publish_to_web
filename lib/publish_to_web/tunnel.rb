@@ -22,8 +22,12 @@ class PublishToWeb
         user_known_hosts_file: "/dev/null",
         port: proxy_port,
         key_data: [identity],
-        logger: logger,
-        verbose: :info
+        # We need to make another logger here because verbose: :warn
+        # will change the log level on the logger - we want to keep
+        # the info messages from the client in general but avoid the
+        # low-level noise from net/ssh
+        logger: PublishToWeb.create_logger,
+        verbose: :warn
       }
     end
     

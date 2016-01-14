@@ -82,9 +82,12 @@ class PublishToWeb
       end
 
       def ensure_valid_identity!
+        logger.info "Checking for useable SSH key pair"
         if public_key_ok?
+          logger.info "The existing SSH key pair appears to be valid"
           true
         else
+          logger.info "Generating new SSH key pair"
           SSHKey.generate(type: 'rsa', bits: 4096).tap do |new_identity|
             register_identity new_identity.ssh_public_key
             info refresh: true
