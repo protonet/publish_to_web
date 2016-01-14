@@ -1,6 +1,7 @@
 require 'sshkey'
 require 'securerandom'
 require 'digest/sha1'
+require 'shellwords'
 
 class PublishToWeb
   class Directory
@@ -70,7 +71,7 @@ class PublishToWeb
 
     def set_version
       logger.info "Setting version at directory to #{version}"
-      response = HTTP.post url_for('set_version'), form: { license_key: license_key, version: version.shellescape }
+      response = HTTP.post url_for('set_version'), form: { license_key: license_key, version: Shellwords.shellescape(version) }
       if (200..299).include? response.status
         true
       else
