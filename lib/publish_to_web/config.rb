@@ -23,8 +23,7 @@ class PublishToWeb
 
     config_attribute :hardware_id, "ptw/hardware_id"
     config_attribute :license_key, "ptw/license"
-    config_attribute :hostname,    "ptw/hostname"
-    config_attribute :node_name,   "ptw/nodenames/publish_to_web"
+    config_attribute :node_name,   "hostname"
     config_attribute :private_key, "ptw/publish_to_web_key"
     config_attribute :public_key,  "ptw/publish_to_web_key.pub"
   end

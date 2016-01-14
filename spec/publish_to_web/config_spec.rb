@@ -5,15 +5,12 @@ describe PublishToWeb::Config do
   let(:config) { PublishToWeb::Config.new store: store }
 
   {
-    hardware_id: 'hardware_id',
-    license_key: 'license',
-    hostname:    'hostname',
-    node_name:   'nodenames/publish_to_web',
-    private_key: 'publish_to_web_key',
-    public_key:  'publish_to_web_key.pub'
-  }.each do |method_name, store_key_fragment|
-    store_key = File.join 'ptw', store_key_fragment
-
+    hardware_id: 'ptw/hardware_id',
+    license_key: 'ptw/license',
+    node_name:   'hostname',
+    private_key: 'ptw/publish_to_web_key',
+    public_key:  'ptw/publish_to_web_key.pub'
+  }.each do |method_name, store_key|
     describe "##{method_name}" do
       it "has a getter" do
         expect(store).to receive(:get).with(store_key).and_return('val')

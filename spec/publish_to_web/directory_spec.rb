@@ -221,7 +221,7 @@ describe PublishToWeb::Directory do
 
       expect {
         directory.set_node_name 'newname'
-      }.to raise_error PublishToWeb::Directory::HttpResponseError, /Failed to set new node name in directory/
+      }.to raise_error PublishToWeb::Directory::HttpResponseError, /new node name in directory/
     end
   end
 

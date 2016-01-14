@@ -4,7 +4,13 @@ require 'digest/sha1'
 
 class PublishToWeb
   class Directory
-    class HttpResponseError < StandardError; end;
+    class HttpResponseError < StandardError
+      attr_reader :response
+      def initialize(message, response)
+        @response = response
+        super "#{message} - HTTP Status: #{response.status}"
+      end
+    end
 
     attr_reader :host, :config, :logger
 
@@ -58,7 +64,7 @@ class PublishToWeb
         info refresh: true
         true
       else
-        raise HttpResponseError, "Failed to set new node name in directory! HTTP Status #{response.status}"
+        raise HttpResponseError.new("Failed to set new node name in directory", response)
       end
     end
 
@@ -68,7 +74,7 @@ class PublishToWeb
       if (200..299).include? response.status
         true
       else
-        raise HttpResponseError, "Failed to set version in directory! HTTP Status #{response.status}"
+        raise HttpResponseError.new("Failed to set version in directory", response)
       end
     end
 
@@ -108,7 +114,7 @@ class PublishToWeb
           if response.status == 200
             JSON.load(response.body)
           else
-            raise HttpResponseError, "Failed to get connection info from directory! HTTP Status #{response.status}"
+            raise HttpResponseError.new("Failed to get connection info from directory", response)
           end
         end
       end
@@ -120,7 +126,7 @@ class PublishToWeb
           logger.info "Successfully created new license key"
           JSON.parse(response.body)["license_key"]
         else
-          raise HttpResponseError, "Failed to create license in directory! HTTP Status #{response.status}"
+          raise HttpResponseError.new("Failed to create license in directory", response)
         end
       end
 
@@ -131,7 +137,7 @@ class PublishToWeb
           logger.info "Successfully registered new public key in directory"
           true
         else
-          raise HttpResponseError, "Failed to register identity with directory! HTTP Status #{response.status}"
+          raise HttpResponseError.new("Failed to register identity with directory", response)
         end
       end
 
