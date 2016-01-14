@@ -71,25 +71,44 @@ class PublishToWeb
       directory.set_node_name node_name
     end
     directory.set_version
+    directory.public_key
   end
 
   def start_tunnel
+    config.success = config.error = nil
+
     prepare_directory
 
     check_local_endpoint
 
     logger.info "Starting tunnel to #{proxy_host} as #{directory.node_name}"
-    tunnel.start
+    tunnel.start do
+      config.success = "connection_established"
+    end
 
   rescue Net::SSH::AuthenticationFailed => err
     logger.warn "#{err.class}: #{err}"
     logger.warn "Probably the SSH key is not deployed on the proxy server yet, retrying in a bit"
+
     sleep 30
     start_tunnel
 
   rescue Errno::ECONNREFUSED => err
     logger.warn "#{err.class}: #{err}"
-    logger.warn "Local backend connection failed (on port #{forward_port} - retrying"
+    logger.warn "Local backend connection failed (on port #{forward_port}) - retrying"
+
+    start_tunnel
+
+  rescue PublishToWeb::Directory::HttpResponseError => err
+    logger.warn "#{err.class}: #{err}"
+    logger.warn "Failed to interact with directory, will try again in a bit"
+
+    # Write out that we have an issue since the directory might refuse
+    # our license, our chosen node name might be in conflict and so on
+    config.success = nil
+    config.error = "directory_failure.#{err.response.status.to_i}"
+
+    sleep 30
     start_tunnel
   end
 

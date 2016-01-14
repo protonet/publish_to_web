@@ -60,7 +60,11 @@ describe PublishToWeb do
 
   describe "#prepare_directory" do
     let(:directory_double) do
-      directory_double = double("PublishToWeb::Directory", set_node_name: true, set_version: true)
+      directory_double = double "PublishToWeb::Directory", 
+        set_node_name: true, 
+        set_version: true,
+        public_key: 'foobar'
+
       expect(PublishToWeb::Directory).to receive(:new).
         and_return(directory_double)
 
@@ -82,6 +86,12 @@ describe PublishToWeb do
 
     it "sends version to directory" do
       expect(directory_double).to receive(:set_version)
+
+      publish_to_web.prepare_directory
+    end
+
+    it "requests the public key to ensure we have a valid identity registered" do
+      expect(directory_double).to receive(:public_key)
 
       publish_to_web.prepare_directory
     end
@@ -110,6 +120,7 @@ describe PublishToWeb do
       expect(directory_double).to receive(:remote_port).and_return('12345')
       expect(directory_double).to receive(:node_name).and_return('lolwat')
       expect(directory_double).to receive(:set_version).and_return(true)
+      expect(directory_double).to receive(:public_key).and_return("akey")
 
 
       expected_tunnel_options = {
@@ -127,9 +138,12 @@ describe PublishToWeb do
       expect(PublishToWeb::Tunnel).to receive(:new).
         with(expected_tunnel_options).
         and_return(tunnel_double)
-      expect(tunnel_double).to receive(:start)
+      expect(tunnel_double).to receive(:start).
+        and_yield
 
       publish_to_web.start_tunnel
+
+      expect(publish_to_web.config.success).to be == "connection_established"
     end
 
     it "retries to establish the tunnel if SSH authentication fails" do
@@ -139,7 +153,8 @@ describe PublishToWeb do
             node_name: 'foo', 
             private_key: 'foo', 
             remote_port: 123,
-            set_version: true
+            set_version: true,
+            public_key: "foobar"
           )
         )
 
@@ -171,7 +186,8 @@ describe PublishToWeb do
             node_name: 'foo', 
             private_key: 'foo', 
             remote_port: 123,
-            set_version: true
+            set_version: true,
+            public_key: "foobar"
           )
         )
 
@@ -183,6 +199,43 @@ describe PublishToWeb do
           calls += 1
           if calls == 1
             raise Errno::ECONNREFUSED
+          else
+            OpenStruct.new(start: 'foo')
+          end
+        end
+
+      publish_to_web.start_tunnel
+    end
+
+    it "handles failures to interact with the directory gracefully" do
+      expect(PublishToWeb::Directory).to receive(:new).
+        and_return(
+          double('directory', 
+            node_name: 'foo', 
+            private_key: 'foo', 
+            remote_port: 123,
+            set_version: true,
+            public_key: "foobar"
+          )
+        )
+
+      # We don't really want to wait 30 seconds here ;)
+      expect(publish_to_web).to receive(:sleep).
+        with(30).
+        and_return(true)
+
+      # Ensure we set the error message
+      expect(publish_to_web.config).to receive(:error=).with(nil).twice
+      expect(publish_to_web.config).to receive(:error=).with("directory_failure.403")
+
+      calls = 0
+      # On first tunnel start throw the connection exception to verify we retry
+      # (and then succeed)
+      expect(PublishToWeb::Tunnel).to receive(:new).
+        twice do
+          calls += 1
+          if calls == 1
+            raise PublishToWeb::Directory::HttpResponseError.new("Message", OpenStruct.new(status: 403))
           else
             OpenStruct.new(start: 'foo')
           end

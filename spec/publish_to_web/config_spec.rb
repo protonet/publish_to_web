@@ -9,7 +9,9 @@ describe PublishToWeb::Config do
     license_key: 'ptw/license',
     node_name:   'hostname',
     private_key: 'ptw/publish_to_web_key',
-    public_key:  'ptw/publish_to_web_key.pub'
+    public_key:  'ptw/publish_to_web_key.pub',
+    success:     'ptw/success',
+    error:       'ptw/error'
   }.each do |method_name, store_key|
     describe "##{method_name}" do
       it "has a getter" do

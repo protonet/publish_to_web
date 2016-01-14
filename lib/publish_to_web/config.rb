@@ -26,5 +26,7 @@ class PublishToWeb
     config_attribute :node_name,   "hostname"
     config_attribute :private_key, "ptw/publish_to_web_key"
     config_attribute :public_key,  "ptw/publish_to_web_key.pub"
+    config_attribute :success,     "ptw/success"
+    config_attribute :error,       "ptw/error"
   end
 end

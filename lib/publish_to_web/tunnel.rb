@@ -43,6 +43,8 @@ class PublishToWeb
     def start
       Net::SSH.start proxy_host, proxy_user, ssh_options do |ssh|
         ssh.forward.remote forward_port, bind_host, remote_port do |real_remote_port|
+          # Indicate to our caller that we have established the connection successfully
+          yield if block_given?
           logger.info "Established remote forwarding at port #{real_remote_port}"
         end
 
@@ -50,6 +52,7 @@ class PublishToWeb
           logger.info "Established local forwarding at port #{real_local_port}"
         end
         logger.info "Entering keepalive loop"
+
         ssh.loop { true }
       end
     end
