@@ -1,28 +1,11 @@
 # PublishToWeb
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/publish_to_web`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
-
-## Installation
-
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'publish_to_web'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install publish_to_web
+This enables any Protonet or Experimental Platform system to get a public URL at NAME.protonet.info via the Protonet Proxy Tunnel service.
 
 ## Usage
 
-TODO: Write usage instructions here
+    gem install publish_to_web
+    ruby -e "require 'publish_to_web'; PublishToWeb.start"
 
 ## Development
 
@@ -32,5 +15,5 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/publish_to_web.
+Bug reports and pull requests are welcome on GitHub at https://github.com/protonet/publish_to_web.
 
