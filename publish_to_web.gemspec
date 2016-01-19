@@ -11,7 +11,9 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{Handle Protonet PublishToWeb Connection}
   spec.description   = %q{Handle Protonet PublishToWeb Connection}
-  spec.homepage      = "https://www.protonet.info"
+  spec.homepage      = "https://github.com/protonet/publish_to_web"
+
+  spec.licenses      = ['MIT']
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
   # delete this section to allow pushing this gem to any host.
