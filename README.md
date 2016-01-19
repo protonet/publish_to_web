@@ -1,4 +1,4 @@
-# PublishToWeb
+# PublishToWeb [![Build Status](https://travis-ci.org/protonet/publish_to_web.svg?branch=master)](https://travis-ci.org/protonet/publish_to_web)
 
 This enables any Protonet or Experimental Platform system to get a public URL at NAME.protonet.info via the Protonet Proxy Tunnel service.
 
