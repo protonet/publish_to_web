@@ -122,6 +122,13 @@ describe PublishToWeb do
       expect(directory_double).to receive(:set_version).and_return(true)
       expect(directory_double).to receive(:public_key).and_return("akey")
 
+      # Initially the status should be reset
+      expect(publish_to_web.config).to receive(:success=).with(nil)
+      expect(publish_to_web.config).to receive(:error=).with(nil)
+      # Afterwards, we write separate success messages: One when the directory is configured,
+      # the other once we are fully connected
+      expect(publish_to_web.config).to receive(:success=).with('directory_configured')
+      expect(publish_to_web.config).to receive(:success=).with('connection_established')
 
       expected_tunnel_options = {
         proxy_host:   publish_to_web.proxy_host,
@@ -142,8 +149,6 @@ describe PublishToWeb do
         and_yield
 
       publish_to_web.start_tunnel
-
-      expect(publish_to_web.config.success).to be == "connection_established"
     end
 
     it "retries to establish the tunnel if SSH authentication fails" do
@@ -210,7 +215,7 @@ describe PublishToWeb do
     it "handles failures to interact with the directory gracefully" do
       expect(PublishToWeb::Directory).to receive(:new).
         and_return(
-          double('directory', 
+          double('directory',
             node_name: 'foo', 
             private_key: 'foo', 
             remote_port: 123,

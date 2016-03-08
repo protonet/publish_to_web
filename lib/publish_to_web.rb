@@ -78,6 +78,7 @@ class PublishToWeb
     config.success = config.error = nil
 
     prepare_directory
+    config.success = 'directory_configured'
 
     check_local_endpoint
 
