@@ -68,7 +68,9 @@ class PublishToWeb
 
   def prepare_directory
     if node_name = config.node_name
-      directory.set_node_name node_name
+      unless ["#{node_name}", "#{node_name}.protonet.info"].include? directory.node_name
+        directory.set_node_name node_name
+      end
     end
     directory.set_version
     directory.public_key

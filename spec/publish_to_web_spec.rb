@@ -72,7 +72,16 @@ describe PublishToWeb do
     end
 
     it "sets the node_name in directory if configured locally" do
+      allow(directory_double).to receive(:node_name).and_return('other-name')
       expect(directory_double).to receive(:set_node_name).with('lolwat')
+
+      publish_to_web.config.node_name = 'lolwat'
+      publish_to_web.prepare_directory
+    end
+
+    it "does not set the node_name in directory same as local" do
+      allow(directory_double).to receive(:node_name).and_return('lolwat')
+      expect(directory_double).not_to receive(:set_node_name).with('lolwat')
 
       publish_to_web.config.node_name = 'lolwat'
       publish_to_web.prepare_directory
