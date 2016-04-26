@@ -94,12 +94,6 @@ class PublishToWeb
     sleep 30
     start_tunnel
 
-  rescue Errno::ECONNREFUSED => err
-    logger.warn "#{err.class}: #{err}"
-    logger.warn "Local backend connection failed (on port #{forward_port}) - retrying"
-
-    start_tunnel
-
   rescue PublishToWeb::Directory::HttpResponseError => err
     logger.warn "#{err.class}: #{err}"
     logger.warn "Failed to interact with directory, will try again in a bit"

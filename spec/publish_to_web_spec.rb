@@ -184,10 +184,10 @@ describe PublishToWeb do
       publish_to_web.start_tunnel
     end
 
-    it "retries to establish the tunnel if local backend fails" do
+    it "checks connectivity to the local endpoint" do
       expect(PublishToWeb::Directory).to receive(:new).
         and_return(
-          double('directory', 
+          double('directory',
             node_name: 'foo', 
             private_key: 'foo', 
             remote_port: 123,
@@ -195,20 +195,9 @@ describe PublishToWeb do
             public_key: "foobar"
           )
         )
+      expect(publish_to_web).to receive(:check_local_endpoint).and_return(true)
 
-      calls = 0
-      # On first tunnel start throw the connection exception to verify we retry
-      # (and then succeed)
-      expect(PublishToWeb::Tunnel).to receive(:new).
-        twice do
-          calls += 1
-          if calls == 1
-            raise Errno::ECONNREFUSED
-          else
-            OpenStruct.new(start: 'foo')
-          end
-        end
-
+      expect(PublishToWeb::Tunnel).to receive(:new).and_return(OpenStruct.new(start: nil))
       publish_to_web.start_tunnel
     end
 
