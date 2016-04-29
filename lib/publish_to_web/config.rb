@@ -9,7 +9,11 @@ class PublishToWeb
       end
 
       define_method "#{name}=" do |value|
-        store.set key, value
+        if value.nil?
+          store.del key
+        else
+          store.set key, value
+        end
       end
     end
 

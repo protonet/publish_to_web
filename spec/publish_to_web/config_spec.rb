@@ -23,6 +23,11 @@ describe PublishToWeb::Config do
         expect(store).to receive(:set).with(store_key, 'val').and_return(true)
         expect(config.send("#{method_name}=", 'val')).to be_truthy
       end
+
+      it "deletes keys if value is nil" do
+        expect(store).to receive(:del).with(store_key).and_return(true)
+        expect(config.send("#{method_name}=", nil)).to be_truthy
+      end
     end
   end
 
