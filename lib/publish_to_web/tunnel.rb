@@ -51,9 +51,9 @@ class PublishToWeb
         ssh.forward.local(local_port, bind_host, 8765).tap do |real_local_port|
           logger.info "Established local forwarding at port #{real_local_port}"
         end
-        logger.info "Entering keepalive loop"
 
-        ssh.loop
+        logger.info "Entering keepalive loop"
+        ssh.loop { true } # do not remove this block, documentation is broken
       end
     end
   end
