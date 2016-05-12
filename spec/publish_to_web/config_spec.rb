@@ -7,7 +7,7 @@ describe PublishToWeb::Config do
   {
     hardware_id: 'ptw/hardware_id',
     license_key: 'ptw/license',
-    node_name:   'hostname',
+    node_name:   'ptw/node_name',
     private_key: 'ptw/publish_to_web_key_private',
     public_key:  'ptw/publish_to_web_key_public',
     success:     'ptw/success',

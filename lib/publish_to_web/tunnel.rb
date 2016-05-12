@@ -53,7 +53,7 @@ class PublishToWeb
         end
         logger.info "Entering keepalive loop"
 
-        ssh.loop { true }
+        ssh.loop
       end
     end
   end
