@@ -76,7 +76,17 @@ class PublishToWeb
     directory.public_key
   end
 
-  def start_tunnel
+  def stop_tunnel
+    tunnel.stop
+    @thread.try :join
+  end
+
+  def start_tunnel(blocking = true)
+    unless blocking
+      @thread = Thread.new start_tunnel true
+      return
+    end
+
     config.success = config.error = nil
 
     prepare_directory
