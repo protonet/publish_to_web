@@ -60,7 +60,7 @@ class PublishToWeb
     logger.info "Checking if local backend is available at #{bind_host}:#{forward_port}"
     TCPSocket.new(bind_host, forward_port).close
 
-  rescue Errno::ECONNREFUSED => err
+  rescue Errno::ECONNREFUSED
     logger.warn "Local backend is not available (yet?) - waiting for it to become available"
     sleep 5
     check_local_endpoint
