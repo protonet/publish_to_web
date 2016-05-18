@@ -40,6 +40,10 @@ class PublishToWeb
       end
     end
 
+    def stop
+      @running = false
+    end
+
     def start
       Net::SSH.start proxy_host, proxy_user, ssh_options do |ssh|
         ssh.forward.remote forward_port, bind_host, remote_port do |real_remote_port|
@@ -53,7 +57,9 @@ class PublishToWeb
         end
 
         logger.info "Entering keepalive loop"
-        ssh.loop { true } # do not remove this block, documentation is broken
+
+        @running = true
+        ssh.loop { @running }
       end
     end
   end
