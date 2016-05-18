@@ -66,7 +66,9 @@ class PublishToWeb
     check_local_endpoint
   end
 
-  def prepare_directory
+  def prepare_directory(fail_gracefully = true)
+    config.success = config.error = nil
+
     if node_name = config.node_name
       unless ["#{node_name}", "#{node_name}.protonet.info"].include? directory.node_name
         directory.set_node_name node_name
@@ -74,6 +76,17 @@ class PublishToWeb
     end
     directory.set_version
     directory.public_key
+
+    config.success = 'directory_configured'
+  rescue PublishToWeb::Directory::HttpResponseError => err
+    logger.warn "#{err.class}: #{err}"
+    logger.warn "Failed to interact with directory, will try again in a bit"
+
+    # Write out that we have an issue since the directory might refuse
+    # our license, our chosen node name might be in conflict and so on
+    config.error = "directory_failure.#{err.response.status.to_i}"
+
+    raise unless fail_gracefully
   end
 
   def stop_tunnel
@@ -87,36 +100,22 @@ class PublishToWeb
       return
     end
 
-    config.success = config.error = nil
-
-    prepare_directory
-    config.success = 'directory_configured'
-
+    prepare_directory false
     check_local_endpoint
 
     logger.info "Starting tunnel to #{proxy_host} as #{directory.node_name}"
-    tunnel.start do
-      config.success = "connection_established"
-    end
+    tunnel.start { config.success = "connection_established" }
 
   rescue Net::SSH::AuthenticationFailed => err
     logger.warn "#{err.class}: #{err}"
     logger.warn "Probably the SSH key is not deployed on the proxy server yet, retrying in a bit"
 
     sleep 30
-    start_tunnel
+    retry
 
   rescue PublishToWeb::Directory::HttpResponseError => err
-    logger.warn "#{err.class}: #{err}"
-    logger.warn "Failed to interact with directory, will try again in a bit"
-
-    # Write out that we have an issue since the directory might refuse
-    # our license, our chosen node name might be in conflict and so on
-    config.success = nil
-    config.error = "directory_failure.#{err.response.status.to_i}"
-
     sleep 30
-    start_tunnel
+    retry
   end
 
   private
