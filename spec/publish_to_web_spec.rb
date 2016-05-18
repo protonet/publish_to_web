@@ -211,40 +211,19 @@ describe PublishToWeb do
     end
 
     it "handles failures to interact with the directory gracefully" do
-      expect(PublishToWeb::Directory).to receive(:new).
-        and_return(
-          double('directory',
-            node_name: 'foo', 
-            private_key: 'foo', 
-            remote_port: 123,
-            set_version: true,
-            public_key: "foobar"
-          )
-        )
+      error     = PublishToWeb::Directory::HttpResponseError.new 'Message', OpenStruct.new(status: 403)
+      directory = double :directory, set_version: true, public_key: true,
+        node_name: 'archimedes'
 
-      # We don't really want to wait 30 seconds here ;)
-      expect(publish_to_web).to receive(:sleep).
-        with(30).
-        and_return(true)
+      allow(directory).to receive(:set_node_name).and_raise error
+      allow(publish_to_web).to receive(:directory).and_return directory
 
-      # Ensure we set the error message
-      expect(publish_to_web.config).to receive(:error=).with(nil).twice
-      expect(publish_to_web.config).to receive(:error=).with("directory_failure.403")
+      allow(publish_to_web.config).to receive(:node_name).and_return 'carla'
+      allow(publish_to_web.config).to receive(:error=).with nil
 
-      calls = 0
-      # On first tunnel start throw the connection exception to verify we retry
-      # (and then succeed)
-      expect(PublishToWeb::Tunnel).to receive(:new).
-        twice do
-          calls += 1
-          if calls == 1
-            raise PublishToWeb::Directory::HttpResponseError.new("Message", OpenStruct.new(status: 403))
-          else
-            OpenStruct.new(start: 'foo')
-          end
-        end
+      expect(publish_to_web.config).to receive(:error=).with('directory_failure.403')
 
-      publish_to_web.start_tunnel
+      publish_to_web.prepare_directory
     end
   end
 end
