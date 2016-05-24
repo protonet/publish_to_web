@@ -156,6 +156,8 @@ describe PublishToWeb do
         and_return(tunnel_double)
       expect(tunnel_double).to receive(:start).
         and_yield
+      allow(tunnel_double).to receive(:running?).
+        and_return false
 
       publish_to_web.start_tunnel
     end

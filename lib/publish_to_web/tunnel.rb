@@ -15,6 +15,7 @@ class PublishToWeb
 
     def ssh_options
       @ssh_options ||= {
+        keepalive: true,
         keepalive_interval: 5,
         paranoid: false,
         # ExitOnForwardFailure ??
@@ -42,6 +43,10 @@ class PublishToWeb
 
     def stop
       @running = false
+    end
+
+    def running?
+      @running
     end
 
     def start

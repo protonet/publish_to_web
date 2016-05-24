@@ -66,11 +66,12 @@ class PublishToWeb
     check_local_endpoint
   end
 
+  SLD = Regexp.escape '.protonet.info'
   def prepare_directory(fail_gracefully = true)
     config.success = config.error = nil
 
     if node_name = config.node_name
-      unless ["#{node_name}", "#{node_name}.protonet.info"].include? directory.node_name
+      if /^#{ Regexp.escape node_name }(#{ SLD })?$/ !~ directory.node_name
         directory.set_node_name node_name
       end
     end
@@ -89,14 +90,20 @@ class PublishToWeb
     raise unless fail_gracefully
   end
 
-  def stop_tunnel
+  def stop_tunnel(*join_args)
     tunnel.stop
-    @thread.try :join
+    @thread.join *join_args if @thread
   end
 
-  def start_tunnel(blocking = true)
+  def start_tunnel(blocking: true)
     unless blocking
-      @thread = Thread.new start_tunnel true
+      @thread = Thread.new do
+        begin
+          start_tunnel blocking: true
+          logger.warn "Tunnel closed... :/"
+        end while tunnel.running? and sleep(5)
+      end
+      @thread.abort_on_exception = true
       return
     end
 
@@ -107,15 +114,24 @@ class PublishToWeb
     tunnel.start { config.success = "connection_established" }
 
   rescue Net::SSH::AuthenticationFailed => err
+
     logger.warn "#{err.class}: #{err}"
     logger.warn "Probably the SSH key is not deployed on the proxy server yet, retrying in a bit"
 
     sleep 30
     retry
 
-  rescue PublishToWeb::Directory::HttpResponseError => err
+  rescue PublishToWeb::Directory::HttpResponseError
+
+    # already handled by #prepare_directory, we just need to wait and retry...
+
     sleep 30
     retry
+
+  rescue => error
+
+    logger.error error
+
   end
 
   private
@@ -126,12 +142,12 @@ class PublishToWeb
 
     def tunnel
       @tunnel ||= Tunnel.new proxy_host: proxy_host,
-        proxy_user: proxy_user, 
-        proxy_port: proxy_port,
-        identity: directory.private_key,
-        bind_host: bind_host, 
-        remote_port: directory.remote_port,
+        proxy_user:   proxy_user, 
+        proxy_port:   proxy_port,
+        identity:     directory.private_key,
+        bind_host:    bind_host, 
+        remote_port:  directory.remote_port,
         forward_port: forward_port,
-        logger: self.class.create_logger
+        logger:       self.class.create_logger
     end
 end
