@@ -43,6 +43,7 @@ describe PublishToWeb::Tunnel do
       expect(PublishToWeb).to receive(:create_logger).and_return(logger)
 
       expected_options = {
+        keepalive: true,
         keepalive_interval: 5,
         paranoid: false,
         use_agent: false,
