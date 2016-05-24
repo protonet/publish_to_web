@@ -95,7 +95,7 @@ class PublishToWeb
     @thread.try :join, *join_args
   end
 
-  def start_tunnel(blocking = true)
+  def start_tunnel(blocking: true)
     unless blocking
       @thread = Thread.new { start_tunnel blocking: true }
       @thread.abort_on_exception = true
