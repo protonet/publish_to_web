@@ -66,11 +66,12 @@ class PublishToWeb
     check_local_endpoint
   end
 
+  SLD = Regexp.escape '.protonet.info'
   def prepare_directory(fail_gracefully = true)
     config.success = config.error = nil
 
     if node_name = config.node_name
-      unless ["#{node_name}", "#{node_name}.protonet.info"].include? directory.node_name
+      if /^#{ Regexp.escape node_name }(#{ SLD })?$/ !~ directory.node_name
         directory.set_node_name node_name
       end
     end
