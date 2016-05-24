@@ -44,6 +44,10 @@ class PublishToWeb
       @running = false
     end
 
+    def running?
+      @running
+    end
+
     def start
       Net::SSH.start proxy_host, proxy_user, ssh_options do |ssh|
         ssh.forward.remote forward_port, bind_host, remote_port do |real_remote_port|
