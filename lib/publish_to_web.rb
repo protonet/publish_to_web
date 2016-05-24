@@ -92,7 +92,7 @@ class PublishToWeb
 
   def stop_tunnel(*join_args)
     tunnel.stop
-    @thread.try :join, *join_args
+    @thread.join *join_args if @thread
   end
 
   def start_tunnel(blocking: true)
