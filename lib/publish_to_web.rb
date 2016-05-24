@@ -100,7 +100,7 @@ class PublishToWeb
       @thread = Thread.new do
         begin
           start_tunnel blocking: true
-          logger.info "Tunnel closed... :/"
+          logger.warn "Tunnel closed... :/"
         end while tunnel.running? and sleep(5)
       end
       @thread.abort_on_exception = true
@@ -111,10 +111,7 @@ class PublishToWeb
     check_local_endpoint
 
     logger.info "Starting tunnel to #{proxy_host} as #{directory.node_name}"
-    begin
-      tunnel.start { config.success = "connection_established" }
-      logger.info "Tunnel died."
-    end while tunnel.running? and sleep(5)
+    tunnel.start { config.success = "connection_established" }
 
   rescue Net::SSH::AuthenticationFailed => err
 
