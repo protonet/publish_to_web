@@ -125,6 +125,10 @@ class PublishToWeb
     sleep 30
     retry
 
+  rescue => error
+
+    logger.error error
+
   end
 
   private
