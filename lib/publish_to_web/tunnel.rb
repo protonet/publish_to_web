@@ -15,6 +15,7 @@ class PublishToWeb
 
     def ssh_options
       @ssh_options ||= {
+        keepalive: true,
         keepalive_interval: 5,
         paranoid: false,
         # ExitOnForwardFailure ??
