@@ -130,7 +130,10 @@ class PublishToWeb
 
   rescue => error
 
-    logger.error error
+    logger.error error.message
+    logger.error error.backtrace.join("\n")
+
+    abort error.message
 
   end
 
