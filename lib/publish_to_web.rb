@@ -126,12 +126,12 @@ class PublishToWeb
 
     def tunnel
       @tunnel ||= Tunnel.new proxy_host: proxy_host,
-        proxy_user: proxy_user, 
-        proxy_port: proxy_port,
-        identity: directory.private_key,
-        bind_host: bind_host, 
-        remote_port: directory.remote_port,
+        proxy_user:   proxy_user, 
+        proxy_port:   proxy_port,
+        identity:     directory.private_key,
+        bind_host:    bind_host, 
+        remote_port:  directory.remote_port,
         forward_port: forward_port,
-        logger: self.class.create_logger
+        logger:       self.class.create_logger
     end
 end
