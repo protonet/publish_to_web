@@ -107,6 +107,7 @@ class PublishToWeb
     tunnel.start { config.success = "connection_established" }
 
   rescue Net::SSH::AuthenticationFailed => err
+
     logger.warn "#{err.class}: #{err}"
     logger.warn "Probably the SSH key is not deployed on the proxy server yet, retrying in a bit"
 
@@ -116,6 +117,7 @@ class PublishToWeb
   rescue PublishToWeb::Directory::HttpResponseError => err
     sleep 30
     retry
+
   end
 
   private
