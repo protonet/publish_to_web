@@ -89,9 +89,9 @@ class PublishToWeb
     raise unless fail_gracefully
   end
 
-  def stop_tunnel
+  def stop_tunnel(*join_args)
     tunnel.stop
-    @thread.try :join
+    @thread.try :join, *join_args
   end
 
   def start_tunnel(blocking = true)
