@@ -97,7 +97,12 @@ class PublishToWeb
 
   def start_tunnel(blocking: true)
     unless blocking
-      @thread = Thread.new { start_tunnel blocking: true }
+      @thread = Thread.new do
+        begin
+          start_tunnel blocking: true
+          logger.info "Tunnel closed... :/"
+        end while tunnel.running? and sleep(5)
+      end
       @thread.abort_on_exception = true
       return
     end
