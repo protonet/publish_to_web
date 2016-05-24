@@ -96,7 +96,7 @@ class PublishToWeb
 
   def start_tunnel(blocking = true)
     unless blocking
-      @thread = Thread.new start_tunnel true
+      @thread = Thread.new { start_tunnel blocking: true }
       return
     end
 
