@@ -108,6 +108,7 @@ class PublishToWeb
     logger.info "Starting tunnel to #{proxy_host} as #{directory.node_name}"
     begin
       tunnel.start { config.success = "connection_established" }
+      logger.info "Tunnel died."
     end while tunnel.running? and sleep(5)
 
   rescue Net::SSH::AuthenticationFailed => err
