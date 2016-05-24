@@ -114,7 +114,10 @@ class PublishToWeb
     sleep 30
     retry
 
-  rescue PublishToWeb::Directory::HttpResponseError => err
+  rescue PublishToWeb::Directory::HttpResponseError
+
+    # already handled by #prepare_directory, we just need to wait and retry...
+
     sleep 30
     retry
 
