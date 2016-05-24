@@ -106,7 +106,9 @@ class PublishToWeb
     check_local_endpoint
 
     logger.info "Starting tunnel to #{proxy_host} as #{directory.node_name}"
-    tunnel.start { config.success = "connection_established" }
+    begin
+      tunnel.start { config.success = "connection_established" }
+    end while tunnel.running? and sleep(5)
 
   rescue Net::SSH::AuthenticationFailed => err
 
