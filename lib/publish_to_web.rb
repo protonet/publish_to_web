@@ -36,7 +36,7 @@ class PublishToWeb
     :proxy_user, :proxy_port, :directory_host, :logger, :config
 
   def initialize(
-      forward_port: 80, 
+      forward_port: 80,
       bind_host: "127.0.0.1",
       proxy_host: "proxy.protonet.info",
       proxy_user: "localtunnel",
@@ -77,6 +77,13 @@ class PublishToWeb
     end
     directory.set_version
     directory.public_key
+
+    directory.smtp_config.tap do |smtp|
+      config.smtp_host   = smtp["host"]
+      config.smtp_sender = smtp["sender"]
+      config.smtp_user   = smtp["user"]
+      config.smtp_pass   = smtp["password"]
+    end
 
     config.success = 'directory_configured'
   rescue PublishToWeb::Directory::HttpResponseError => err

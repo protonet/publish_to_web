@@ -260,4 +260,43 @@ describe PublishToWeb::Directory do
     end
   end
 
+  describe "SMTP credentials" do
+    describe "#smtp_config" do
+      it "retrieves the current smtp configuration from the directory" do
+        config.license_key = 'license'
+
+        smtp_config = {
+          "host"     => 'smtp.example.com', 
+          "sender"   => 'noreply@example.com', 
+          "user"     => 'theusername', 
+          "password" => 'thepassword' 
+        }
+
+        expect(HTTP).to receive(:get).
+        with('https://example.com/smtp_config',
+          params: { license_key: config.license_key }).
+        and_return(
+          OpenStruct.new(status: 200, body: smtp_config.to_json)
+        )
+
+        expect(directory.smtp_config).to be == smtp_config
+      end
+
+      it "raises an HttpResponseError on failure" do
+        config.license_key = 'license'
+
+        expect(HTTP).to receive(:get).
+        with('https://example.com/smtp_config',
+          params: { license_key: config.license_key }).
+        and_return(
+          OpenStruct.new(status: 403)
+        )
+
+        expect {
+          directory.smtp_config
+        }.to raise_error PublishToWeb::Directory::HttpResponseError, /Failed to retrieve smtp cred/
+      end
+    end
+  end
+
 end

@@ -79,6 +79,16 @@ class PublishToWeb
       end
     end
 
+    def smtp_config
+      logger.info "Retrieving SMTP configuration from directory"
+      response = HTTP.get url_for('smtp_config'), params: { license_key: license_key }
+      if (200..299).include? response.status
+        JSON.parse(response.body)
+      else
+        raise HttpResponseError.new("Failed to retrieve smtp credentials from directory", response)
+      end
+    end
+
     private
 
       def public_key_ok?
