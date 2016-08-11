@@ -63,7 +63,13 @@ describe PublishToWeb do
       directory_double = double "PublishToWeb::Directory", 
         set_node_name: true, 
         set_version: true,
-        public_key: 'foobar'
+        public_key: 'foobar',
+        smtp_config: {
+          "host"     => 'smtp.example.com', 
+          "sender"   => 'noreply@example.com', 
+          "user"     => 'theusername', 
+          "password" => 'thepassword' 
+        }
 
       expect(PublishToWeb::Directory).to receive(:new).
         and_return(directory_double)
@@ -93,6 +99,42 @@ describe PublishToWeb do
       publish_to_web.prepare_directory
     end
 
+    describe "SMTP configuration" do
+      before(:each) do
+        expect(directory_double).to receive(:smtp_config).and_return(
+          "host"     => 'smtp.example.com', 
+          "sender"   => 'noreply@example.com', 
+          "user"     => 'theusername', 
+          "password" => 'thepassword' 
+        )
+      end
+
+      it "sets smtp host based on directory" do
+        expect { publish_to_web.prepare_directory }.to change {
+          publish_to_web.config.smtp_host
+        }.from(nil).to('smtp.example.com')
+      end
+
+      it "sets smtp sender based on directory" do
+        expect { publish_to_web.prepare_directory }.to change {
+          publish_to_web.config.smtp_sender
+        }.from(nil).to('noreply@example.com')
+      end
+
+      it "sets smtp user based on directory" do
+        expect { publish_to_web.prepare_directory }.to change {
+          publish_to_web.config.smtp_user
+        }.from(nil).to('theusername')
+      end
+
+      it "sets smtp password based on directory" do
+        expect { publish_to_web.prepare_directory }.to change {
+          publish_to_web.config.smtp_pass
+        }.from(nil).to('thepassword')
+      end
+    end
+
+
     it "sends version to directory" do
       expect(directory_double).to receive(:set_version)
 
@@ -115,7 +157,7 @@ describe PublishToWeb do
     end
 
     it "starts a new ssh tunnel based on the configuration" do
-      directory_double = double("PublishToWeb::Directory")
+      directory_double = double("PublishToWeb::Directory", smtp_config: {})
       expected_directory_options = {
         host:   publish_to_web.directory_host,
         logger: publish_to_web.logger,
@@ -170,7 +212,8 @@ describe PublishToWeb do
             private_key: 'foo', 
             remote_port: 123,
             set_version: true,
-            public_key: "foobar"
+            public_key: "foobar",
+            smtp_config: {}
           )
         )
 
@@ -203,7 +246,8 @@ describe PublishToWeb do
             private_key: 'foo', 
             remote_port: 123,
             set_version: true,
-            public_key: "foobar"
+            public_key: "foobar",
+            smtp_config: {}
           )
         )
       expect(publish_to_web).to receive(:check_local_endpoint).and_return(true)

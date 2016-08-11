@@ -32,5 +32,10 @@ class PublishToWeb
     config_attribute :public_key,  "ptw/publish_to_web_key_public"
     config_attribute :success,     "ptw/success"
     config_attribute :error,       "ptw/error"
+
+    config_attribute :smtp_host,   "smtp/host"
+    config_attribute :smtp_sender, "smtp/sender"
+    config_attribute :smtp_user,   "smtp/username"
+    config_attribute :smtp_pass,   "smtp/password"
   end
 end

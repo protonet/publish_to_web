@@ -11,7 +11,11 @@ describe PublishToWeb::Config do
     private_key: 'ptw/publish_to_web_key_private',
     public_key:  'ptw/publish_to_web_key_public',
     success:     'ptw/success',
-    error:       'ptw/error'
+    error:       'ptw/error',
+    smtp_host:   'smtp/host',
+    smtp_sender: 'smtp/sender',
+    smtp_user:   'smtp/username',
+    smtp_pass:   'smtp/password'
   }.each do |method_name, store_key|
     describe "##{method_name}" do
       it "has a getter" do
