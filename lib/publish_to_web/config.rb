@@ -22,7 +22,7 @@ class PublishToWeb
     end
 
     def enabled?
-      !!store.get('ptw/enabled')
+      !!store.get('ptw/control/enabled')
     end
 
     config_attribute :hardware_id, "ptw/hardware_id"
@@ -37,5 +37,21 @@ class PublishToWeb
     config_attribute :smtp_sender, "smtp/sender"
     config_attribute :smtp_user,   "smtp/username"
     config_attribute :smtp_pass,   "smtp/password"
+
+    def support_identifier
+      identifier = store.get('system/support_identifier')
+      if identifier.kind_of?(String) and identifier.strip.length > 0
+        identifier
+      end
+    end
+
+    def system_version
+      parts = [store.get('system/channel'), store.get('system/release_number')]
+      if parts.all? {|p| p.kind_of?(String) and p.strip.length > 0 }
+        parts.join("/")
+      else
+        "unknown"
+      end
+    end
   end
 end

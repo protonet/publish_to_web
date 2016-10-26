@@ -54,7 +54,7 @@ class PublishToWeb
     end
 
     def version
-      "platform-alpha"
+      config.system_version
     end
 
     def set_node_name(node_name)
@@ -71,7 +71,12 @@ class PublishToWeb
 
     def set_version
       logger.info "Setting version at directory to #{version}"
-      response = HTTP.post url_for('set_version'), form: { license_key: license_key, version: Shellwords.shellescape(version) }
+      payload = { 
+        license_key: license_key, 
+        version: Shellwords.shellescape(version), 
+        support_identifier: config.support_identifier 
+      }
+      response = HTTP.post url_for('set_version'), form: payload
       if (200..299).include? response.status
         true
       else

@@ -35,10 +35,64 @@ describe PublishToWeb::Config do
     end
   end
 
+  describe "support_identifier" do
+    it "pulls 'system/support_identifier' from SKVS" do
+      expect(store).to receive(:get).with('system/support_identifier').and_return("MAYA-1234")
+      expect(config.support_identifier).to be == "MAYA-1234"
+    end
+
+    it "returns nil if support identifier is blank" do
+      expect(store).to receive(:get).with('system/support_identifier').and_return(" ")
+      expect(config.support_identifier).to be_nil
+    end
+
+    it "returns nil if support identifier is nil" do
+      expect(store).to receive(:get).with('system/support_identifier').and_return(nil)
+      expect(config.support_identifier).to be_nil
+    end
+  end
+
+  describe "system_version" do
+    it "composes the current system version from SKVS" do
+      expect(store).to receive(:get).with('system/channel').and_return("stable")
+      expect(store).to receive(:get).with('system/release_number').and_return("12345")
+      expect(config.system_version).to be == "stable/12345"
+    end
+
+    it "falls back to 'unknown' when system/channel is blank" do
+      expect(store).to receive(:get).with('system/channel').and_return(" ")
+      expect(store).to receive(:get).with('system/release_number').and_return("12345")
+      expect(config.system_version).to be == "unknown"
+    end
+
+    it "falls back to 'unknown' when system/channel is nil" do
+      expect(store).to receive(:get).with('system/channel').and_return(nil)
+      expect(store).to receive(:get).with('system/release_number').and_return("12345")
+      expect(config.system_version).to be == "unknown"
+    end
+
+    it "falls back to 'unknown' when system/release_number is blank" do
+      expect(store).to receive(:get).with('system/channel').and_return("stable")
+      expect(store).to receive(:get).with('system/release_number').and_return(" ")
+      expect(config.system_version).to be == "unknown"
+    end
+
+    it "falls back to 'unknown' when system/release_number is nil" do
+      expect(store).to receive(:get).with('system/channel').and_return("stable")
+      expect(store).to receive(:get).with('system/release_number').and_return(nil)
+      expect(config.system_version).to be == "unknown"
+    end    
+  end
+
   describe "enabled?" do
-    it "wraps a boolean query" do
-      expect(store).to receive(:get).with("ptw/enabled").and_return('val')
+    it "returns true if ptw is enabled" do
+      expect(store).to receive(:get).with("ptw/control/enabled").and_return('val')
       expect(config.enabled?).to be == true
+    end
+
+    it "returns false if ptw is disabled" do
+      expect(store).to receive(:get).with("ptw/control/enabled").and_return(nil)
+      expect(config.enabled?).to be == false
     end
   end
 
