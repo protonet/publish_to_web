@@ -94,6 +94,16 @@ class PublishToWeb
       end
     end
 
+    def limits
+      logger.info "Retrieving limits from directory"
+      response = HTTP.get url_for('limits'), params: { license_key: license_key }
+      if (200..299).include? response.status
+        JSON.parse(response.body)
+      else
+        raise HttpResponseError.new("Failed to retrieve limits from directory", response)
+      end
+    end
+
     private
 
       def public_key_ok?

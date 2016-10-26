@@ -85,6 +85,10 @@ class PublishToWeb
       config.smtp_pass   = smtp["password"]
     end
 
+    if limits = directory.limits
+      config.account_limit = limits["accounts"]
+    end
+
     config.success = 'directory_configured'
   rescue PublishToWeb::Directory::HttpResponseError => err
     logger.warn "#{err.class}: #{err}"

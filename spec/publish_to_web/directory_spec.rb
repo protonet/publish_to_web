@@ -305,4 +305,38 @@ describe PublishToWeb::Directory do
     end
   end
 
+  describe "#limits" do
+    it "retrieves the current smtp configuration from the directory" do
+      config.license_key = 'license'
+
+      limits = {
+        "accounts" => 5
+      }
+
+      expect(HTTP).to receive(:get).
+      with('https://example.com/limits',
+        params: { license_key: config.license_key }).
+      and_return(
+        OpenStruct.new(status: 200, body: limits.to_json)
+      )
+
+      expect(directory.limits).to be == limits
+    end
+
+    it "raises an HttpResponseError on failure" do
+      config.license_key = 'license'
+
+      expect(HTTP).to receive(:get).
+      with('https://example.com/limits',
+        params: { license_key: config.license_key }).
+      and_return(
+        OpenStruct.new(status: 403)
+      )
+
+      expect {
+        directory.limits
+      }.to raise_error PublishToWeb::Directory::HttpResponseError, /Failed to retrieve limits/
+    end
+  end
+
 end

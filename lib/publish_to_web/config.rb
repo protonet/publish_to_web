@@ -38,6 +38,8 @@ class PublishToWeb
     config_attribute :smtp_user,   "smtp/username"
     config_attribute :smtp_pass,   "smtp/password"
 
+    config_attribute :account_limit, "soul/account_limit"
+
     def support_identifier
       identifier = store.get('system/support_identifier')
       if identifier.kind_of?(String) and identifier.strip.length > 0

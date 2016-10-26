@@ -15,7 +15,8 @@ describe PublishToWeb::Config do
     smtp_host:   'smtp/host',
     smtp_sender: 'smtp/sender',
     smtp_user:   'smtp/username',
-    smtp_pass:   'smtp/password'
+    smtp_pass:   'smtp/password',
+    account_limit: 'soul/account_limit'
   }.each do |method_name, store_key|
     describe "##{method_name}" do
       it "has a getter" do
