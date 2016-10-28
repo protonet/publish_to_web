@@ -138,7 +138,11 @@ class PublishToWeb
           logger.info "Retrieving connection info from directory #{host}"
           response = HTTP.get(url_for('info'), params: { license_key: license_key })
           if response.status == 200
-            JSON.load(response.body)
+            data = JSON.load(response.body)
+            data.each do |key, value|
+              logger.info "     #{key} = #{value}"
+            end
+            data
           else
             raise HttpResponseError.new("Failed to get connection info from directory", response)
           end
