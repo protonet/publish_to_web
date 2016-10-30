@@ -70,7 +70,8 @@ describe PublishToWeb do
           "user"     => 'theusername', 
           "password" => 'thepassword' 
         },
-        limits: { "accounts" => 5 }
+        limits: { "accounts" => 5 },
+        report_usage: nil
 
       expect(PublishToWeb::Directory).to receive(:new).
         and_return(directory_double)
@@ -159,6 +160,12 @@ describe PublishToWeb do
       end
     end
 
+    it "reports usage to directory" do
+      expect(directory_double).to receive(:report_usage)
+
+      publish_to_web.prepare_directory
+    end
+
     it "sends version to directory" do
       expect(directory_double).to receive(:set_version)
 
@@ -181,7 +188,11 @@ describe PublishToWeb do
     end
 
     it "starts a new ssh tunnel based on the configuration" do
-      directory_double = double("PublishToWeb::Directory", smtp_config: {}, limits: {})
+      directory_double = double("PublishToWeb::Directory", 
+        smtp_config: {}, 
+        limits: {},
+        report_usage: nil
+      )
       expected_directory_options = {
         host:   publish_to_web.directory_host,
         logger: publish_to_web.logger,
@@ -238,7 +249,8 @@ describe PublishToWeb do
             set_version: true,
             public_key: "foobar",
             smtp_config: {},
-            limits: {}
+            limits: {},
+            report_usage: nil
           )
         )
 
@@ -273,7 +285,8 @@ describe PublishToWeb do
             set_version: true,
             public_key: "foobar",
             smtp_config: {},
-            limits: {}
+            limits: {},
+            report_usage: nil
           )
         )
       expect(publish_to_web).to receive(:check_local_endpoint).and_return(true)

@@ -84,6 +84,24 @@ class PublishToWeb
       end
     end
 
+    def report_usage
+      if active_accounts = config.active_accounts
+        logger.info "Reporting usage to directory"
+        payload = { 
+          license_key: license_key, 
+          active_accounts: active_accounts
+        }
+        response = HTTP.post url_for('usage'), form: payload
+        if (200..299).include? response.status
+          true
+        else
+          raise HttpResponseError.new("Failed to submit usage to directory", response)
+        end
+      else
+        logger.info "Not reporting usage as no data is available"
+      end
+    end
+
     def smtp_config
       logger.info "Retrieving SMTP configuration from directory"
       response = HTTP.get url_for('smtp_config'), params: { license_key: license_key }

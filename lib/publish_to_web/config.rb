@@ -40,6 +40,10 @@ class PublishToWeb
 
     config_attribute :account_limit, "soul/account_limit"
 
+    def active_accounts
+      store.get 'soul/active_accounts'
+    end
+
     def support_identifier
       identifier = store.get('system/support_identifier')
       if identifier.kind_of?(String) and identifier.strip.length > 0
