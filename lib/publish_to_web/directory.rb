@@ -54,7 +54,7 @@ class PublishToWeb
     end
 
     def version
-      "platform-alpha"
+      config.system_version
     end
 
     def set_node_name(node_name)
@@ -71,7 +71,12 @@ class PublishToWeb
 
     def set_version
       logger.info "Setting version at directory to #{version}"
-      response = HTTP.post url_for('set_version'), form: { license_key: license_key, version: Shellwords.shellescape(version) }
+      payload = { 
+        license_key: license_key, 
+        version: Shellwords.shellescape(version), 
+        support_identifier: config.support_identifier 
+      }
+      response = HTTP.post url_for('set_version'), form: payload
       if (200..299).include? response.status
         true
       else
@@ -86,6 +91,16 @@ class PublishToWeb
         JSON.parse(response.body)
       else
         raise HttpResponseError.new("Failed to retrieve smtp credentials from directory", response)
+      end
+    end
+
+    def limits
+      logger.info "Retrieving limits from directory"
+      response = HTTP.get url_for('limits'), params: { license_key: license_key }
+      if (200..299).include? response.status
+        JSON.parse(response.body)
+      else
+        raise HttpResponseError.new("Failed to retrieve limits from directory", response)
       end
     end
 
@@ -123,7 +138,11 @@ class PublishToWeb
           logger.info "Retrieving connection info from directory #{host}"
           response = HTTP.get(url_for('info'), params: { license_key: license_key })
           if response.status == 200
-            JSON.load(response.body)
+            data = JSON.load(response.body)
+            data.each do |key, value|
+              logger.info "     #{key} = #{value}"
+            end
+            data
           else
             raise HttpResponseError.new("Failed to get connection info from directory", response)
           end

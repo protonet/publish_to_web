@@ -59,6 +59,7 @@ class PublishToWeb
   def check_local_endpoint
     logger.info "Checking if local backend is available at #{bind_host}:#{forward_port}"
     TCPSocket.new(bind_host, forward_port).close
+    logger.info "  ✔ Local backend is available!"
 
   rescue Errno::ECONNREFUSED
     logger.warn "Local backend is not available (yet?) - waiting for it to become available"
@@ -78,6 +79,7 @@ class PublishToWeb
     directory.set_version
     directory.public_key
 
+    logger.info "Updating SMTP configuration"
     directory.smtp_config.tap do |smtp|
       config.smtp_host   = smtp["host"]
       config.smtp_sender = smtp["sender"]
@@ -85,7 +87,13 @@ class PublishToWeb
       config.smtp_pass   = smtp["password"]
     end
 
+    logger.info "Updating limits configuration"
+    if limits = directory.limits
+      config.account_limit = limits["accounts"]
+    end
+
     config.success = 'directory_configured'
+
   rescue PublishToWeb::Directory::HttpResponseError => err
     logger.warn "#{err.class}: #{err}"
     logger.warn "Failed to interact with directory, will try again in a bit"
@@ -129,7 +137,6 @@ class PublishToWeb
     retry
 
   rescue PublishToWeb::Directory::HttpResponseError
-
     # already handled by #prepare_directory, we just need to wait and retry...
 
     sleep 30
@@ -139,8 +146,6 @@ class PublishToWeb
 
     logger.error error.message
     logger.error error.backtrace.join("\n")
-
-    abort error.message
 
   end
 

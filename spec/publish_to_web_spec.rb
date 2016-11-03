@@ -69,7 +69,8 @@ describe PublishToWeb do
           "sender"   => 'noreply@example.com', 
           "user"     => 'theusername', 
           "password" => 'thepassword' 
-        }
+        },
+        limits: { "accounts" => 5 }
 
       expect(PublishToWeb::Directory).to receive(:new).
         and_return(directory_double)
@@ -134,6 +135,29 @@ describe PublishToWeb do
       end
     end
 
+    describe "limits" do
+      it "sets accounts limit based on directory" do
+        expect(directory_double).to receive(:limits).and_return(
+          "accounts" => 5
+        )
+
+        expect { publish_to_web.prepare_directory }.to change {
+          publish_to_web.config.account_limit
+        }.from(nil).to("5")
+      end
+
+      it "drops accounts limit based on directory" do
+        publish_to_web.config.account_limit = "5"
+
+        expect(directory_double).to receive(:limits).and_return(
+          "accounts" => nil
+        )
+
+        expect { publish_to_web.prepare_directory }.to change {
+          publish_to_web.config.account_limit
+        }.from("5").to(nil)
+      end
+    end
 
     it "sends version to directory" do
       expect(directory_double).to receive(:set_version)
@@ -157,7 +181,7 @@ describe PublishToWeb do
     end
 
     it "starts a new ssh tunnel based on the configuration" do
-      directory_double = double("PublishToWeb::Directory", smtp_config: {})
+      directory_double = double("PublishToWeb::Directory", smtp_config: {}, limits: {})
       expected_directory_options = {
         host:   publish_to_web.directory_host,
         logger: publish_to_web.logger,
@@ -213,7 +237,8 @@ describe PublishToWeb do
             remote_port: 123,
             set_version: true,
             public_key: "foobar",
-            smtp_config: {}
+            smtp_config: {},
+            limits: {}
           )
         )
 
@@ -247,7 +272,8 @@ describe PublishToWeb do
             remote_port: 123,
             set_version: true,
             public_key: "foobar",
-            smtp_config: {}
+            smtp_config: {},
+            limits: {}
           )
         )
       expect(publish_to_web).to receive(:check_local_endpoint).and_return(true)

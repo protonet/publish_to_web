@@ -227,18 +227,24 @@ describe PublishToWeb::Directory do
 
   describe "Version" do
     describe "#version" do
-      it "is hard-coded" do
-        expect(directory.version).to be == "platform-alpha"
+      it "is pulled from the configuration" do
+        expect(config).to receive(:system_version).and_return('development/12345')
+        expect(directory.version).to be == "development/12345"
       end
     end
 
     describe "#set_version" do
       it "sends the version to the directory" do
         config.license_key = 'license'
+        expect(config).to receive(:support_identifier).and_return('foobar')
 
         expect(HTTP).to receive(:post).
           with('https://example.com/set_version',
-            form: { license_key: directory.license_key, version: directory.version }).
+            form: { 
+              license_key: 'license', 
+              version: directory.version, 
+              support_identifier: 'foobar'
+            }).
           and_return(
             OpenStruct.new(status: 200)
           )
@@ -296,6 +302,40 @@ describe PublishToWeb::Directory do
           directory.smtp_config
         }.to raise_error PublishToWeb::Directory::HttpResponseError, /Failed to retrieve smtp cred/
       end
+    end
+  end
+
+  describe "#limits" do
+    it "retrieves the current smtp configuration from the directory" do
+      config.license_key = 'license'
+
+      limits = {
+        "accounts" => 5
+      }
+
+      expect(HTTP).to receive(:get).
+      with('https://example.com/limits',
+        params: { license_key: config.license_key }).
+      and_return(
+        OpenStruct.new(status: 200, body: limits.to_json)
+      )
+
+      expect(directory.limits).to be == limits
+    end
+
+    it "raises an HttpResponseError on failure" do
+      config.license_key = 'license'
+
+      expect(HTTP).to receive(:get).
+      with('https://example.com/limits',
+        params: { license_key: config.license_key }).
+      and_return(
+        OpenStruct.new(status: 403)
+      )
+
+      expect {
+        directory.limits
+      }.to raise_error PublishToWeb::Directory::HttpResponseError, /Failed to retrieve limits/
     end
   end
 
