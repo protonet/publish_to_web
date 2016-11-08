@@ -266,6 +266,48 @@ describe PublishToWeb::Directory do
     end
   end
 
+  describe "Usage" do
+    describe "#set_usage" do
+      it "sends usage info to the directory" do
+        config.license_key = 'license'
+        expect(config).to receive(:active_accounts).and_return('42')
+
+        expect(HTTP).to receive(:post).
+          with('https://example.com/usage',
+            form: { 
+              license_key: 'license', 
+              active_accounts: '42'
+            }).
+          and_return(
+            OpenStruct.new(status: 200)
+          )
+
+        directory.report_usage
+      end
+
+      it "does not send usage info if no data found in SKVS" do
+        config.license_key = 'license'
+        expect(config).to receive(:active_accounts).and_return(nil)
+
+        expect(HTTP).not_to receive(:post)
+        directory.report_usage
+      end
+
+      it "raises an HttpResponseError on failure" do
+        config.license_key = 'license'
+        expect(config).to receive(:active_accounts).and_return('42')
+
+        expect(HTTP).to receive(:post).
+          with('https://example.com/usage', kind_of(Hash)).
+          and_return(OpenStruct.new(status: 400))
+
+        expect {
+          directory.report_usage
+        }.to raise_error PublishToWeb::Directory::HttpResponseError, /Failed to submit usage to directory/
+      end
+    end
+  end
+
   describe "SMTP credentials" do
     describe "#smtp_config" do
       it "retrieves the current smtp configuration from the directory" do

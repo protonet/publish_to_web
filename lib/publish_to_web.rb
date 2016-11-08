@@ -92,6 +92,8 @@ class PublishToWeb
       config.account_limit = limits["accounts"]
     end
 
+    directory.report_usage
+
     config.success = 'directory_configured'
 
   rescue PublishToWeb::Directory::HttpResponseError => err

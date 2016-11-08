@@ -36,6 +36,13 @@ describe PublishToWeb::Config do
     end
   end
 
+  describe "active_accounts" do
+    it "pulls soul/active_accounts from the store" do
+      expect(store).to receive(:get).with('soul/active_accounts').and_return("42")
+      expect(config.active_accounts).to be == "42"
+    end
+  end
+
   describe "support_identifier" do
     it "pulls 'system/support_identifier' from SKVS" do
       expect(store).to receive(:get).with('system/support_identifier').and_return("MAYA-1234")
