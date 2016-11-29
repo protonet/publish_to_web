@@ -1,0 +1,25 @@
+# See https://docs.codeclimate.com/docs/list-of-engines
+# and https://docs.codeclimate.com/docs/example-codeclimateyml
+engines:
+  rubocop:
+    enabled: true
+    #checks:
+    # Rubocop/Metrics/ClassLength:
+    #   enabled: false
+  brakeman:
+    enabled: true
+    #exclude_fingerprints:
+    #- 08c185b3f764f262539a1f76997d3a89
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - ruby
+  fixme:
+    enabled: true
+  reek:
+    enabled: true
+
+exclude_paths:
+  - spec/**/*
+  - "**/vendor/**/*"
