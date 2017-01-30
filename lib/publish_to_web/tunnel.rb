@@ -33,12 +33,10 @@ class PublishToWeb
     end
     
     def local_port
-      @local_port ||= begin
-        server = TCPServer.new('127.0.0.1', 0)
-        local_port = server.addr[1]
-        server.close
-        local_port
-      end
+      server = TCPServer.new('127.0.0.1', 0)
+      server.addr[1]
+    ensure
+      server.close
     end
 
     def stop

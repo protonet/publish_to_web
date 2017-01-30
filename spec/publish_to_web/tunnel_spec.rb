@@ -31,9 +31,9 @@ describe PublishToWeb::Tunnel do
       expect(tunnel.local_port).to be == 45678
     end
 
-    it "memoizes the local port value" do
+    it "regenerates local port on each call" do
       port = tunnel.local_port
-      expect(tunnel.local_port).to be == port
+      expect(tunnel.local_port).not_to be == port
     end
   end
 
@@ -79,9 +79,10 @@ describe PublishToWeb::Tunnel do
       tunnel.start
     end
 
-    it "sets up a remote forward on the ssh connection" do
+    it "sets up a local forward on the ssh connection" do
+      expect(tunnel).to receive(:local_port).and_return(48123)
       expect(ssh_forward_mock).to receive(:local).
-        with(tunnel.local_port, tunnel.bind_host, 8765).
+        with(48123, tunnel.bind_host, 8765).
         and_return(4567)
 
       tunnel.start
